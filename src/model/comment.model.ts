@@ -10,7 +10,7 @@ const commentSchema = new mongoose.Schema({
     required: true,
   },
   text: {
-    type: Date,
+    type: String,
     required: true,
     default: new Date(),
   },
@@ -22,7 +22,6 @@ const commentSchema = new mongoose.Schema({
   articleId: {
     type: String,
     required: true,
-    unique: true,
   },
 });
 

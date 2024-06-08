@@ -1,5 +1,7 @@
 import express from "express";
 import { arcticleRoute } from "./article.route";
+import { categoryRoute } from "./categories.route";
+import { commentRoute } from "./comment.route";
 import { peopleRotue as peopleRoute } from "./people.route";
 import { tagsRoute } from "./tags.route";
 const router = express.Router();
@@ -16,6 +18,14 @@ const moduleRoute = [
   {
     path: "/tag",
     route: tagsRoute,
+  },
+  {
+    path: "/comment",
+    route: commentRoute,
+  },
+  {
+    path: "/category",
+    route: categoryRoute,
   },
 ];
 
