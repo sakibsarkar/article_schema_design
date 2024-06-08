@@ -18,9 +18,11 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
-  article: {
-    type: mongoose.Types.ObjectId,
+
+  articleId: {
+    type: String,
     required: true,
+    unique: true,
   },
 });
 

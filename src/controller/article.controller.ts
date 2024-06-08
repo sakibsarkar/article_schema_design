@@ -3,19 +3,25 @@ import { Article } from "../model/article.model";
 import { Categories } from "../model/category.model";
 import { Tags } from "../model/tags.model";
 import { catchAsyncError } from "../utils/catchAsyncError";
+import { generateArticleId } from "../utils/generateArticleId";
 import sendResponse from "../utils/sendResponse";
 
 export const createArticle = catchAsyncError(async (req, res) => {
   const { category, tags, ...rest } = req.body;
 
-  const tag = await Tags.create([...category]);
-  const categories = await Categories.create(tags);
+  const articleId = await generateArticleId();
+
+  const tagsData = [...tags].map((tag) => ({ ...tag, articleId }));
+  const categoiesData = [...category].map((cat) => ({ ...cat, articleId }));
+
+  const tag = await Tags.create([...tagsData]);
+  const categories = await Categories.create([...categoiesData]);
 
   let data = { ...rest };
   data.tags = tag.map((tag) => tag._id);
-  data.categories = tag.map((tag) => tag._id);
+  data.categories = categoiesData.map((cat) => cat._id);
 
-  const article = await Article.create(data);
+  const article = await Article.create({ ...data, articleId });
 
   sendResponse(res, {
     statusCode: 200,
@@ -26,8 +32,6 @@ export const createArticle = catchAsyncError(async (req, res) => {
 });
 
 export const getAllArticle = catchAsyncError(async (req, res, next) => {
-  const { searchTerm, category, tag, limit, skip } = req.query;
-
   const article = Article.find()
     .populate("tags")
     .populate("categories")
@@ -83,9 +87,9 @@ export const deletArticleByid = catchAsyncError(async (req, res, next) => {
   }
 
   // delte operations
-  await Article.findByIdAndDelete(id);
-  await Tags.deleteMany({ article: id });
-  await Categories.deleteMany({ article: id });
+  await Article.findByIdAndDelete(isExist._id);
+  await Tags.deleteMany({ articleId: isExist.articleId });
+  await Categories.deleteMany({ articleId: isExist.articleId });
   sendResponse(res, {
     data: null,
     success: true,

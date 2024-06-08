@@ -15,6 +15,10 @@ const tagsSchema = new mongoose.Schema({
     default: new Date(),
   },
 
+  articleId: {
+    type: String,
+    required: true,
+  },
 });
 
 export const Tags = mongoose.model("Tags", tagsSchema);

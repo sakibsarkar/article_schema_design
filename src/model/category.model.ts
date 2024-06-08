@@ -9,6 +9,10 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  articleId: {
+    type: String,
+    required: true,
+  },
 });
 
 export const Categories = mongoose.model("Categories", categorySchema);

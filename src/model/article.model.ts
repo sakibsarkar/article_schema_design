@@ -7,6 +7,8 @@ interface IArticle extends Document {
   people: mongoose.Types.ObjectId;
   tags: mongoose.Types.ObjectId[];
   categoies: mongoose.Types.ObjectId[];
+  comments: mongoose.Types.ObjectId[] | [];
+  articleId: String;
 }
 
 const articleSchema = new mongoose.Schema({
@@ -14,6 +16,7 @@ const articleSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   text: {
     type: String,
     required: true,
@@ -26,20 +29,37 @@ const articleSchema = new mongoose.Schema({
   people: {
     type: mongoose.Types.ObjectId,
     required: true,
+    ref: "People",
   },
   tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tags" }],
   categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categories" }],
+  comments: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comments" }],
+    required: false,
+    default: [],
+  },
+
+  articleId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 interface IArticleModel extends Model<IArticle> {
   isArticleExist(id: string): Promise<IArticle | null>;
 }
 
 articleSchema.statics.isArticleExist = async function (id: string) {
-  const objIdRegex = /^[0-9a-fA-F]{24}$/;
-  if (!objIdRegex.test(id)) {
-    throw new Error("Invalid object id");
-  }
-  const article = await this.findById(id);
+  const article = await this.findOne({
+    $or: [
+      {
+        _id: id,
+      },
+      {
+        articleId: id,
+      },
+    ],
+  });
   return article;
 };
 
