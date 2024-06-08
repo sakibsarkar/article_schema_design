@@ -5,10 +5,9 @@ interface IArticle extends Document {
   text: string;
   date: Date;
   people: mongoose.Types.ObjectId;
-  tags: mongoose.Types.ObjectId[];
-  categoies: mongoose.Types.ObjectId[];
+  tags: mongoose.Types.ObjectId[] | [];
+  categoies: mongoose.Types.ObjectId[] | [];
   comments: mongoose.Types.ObjectId[] | [];
-  articleId: String;
 }
 
 const articleSchema = new mongoose.Schema({
@@ -31,18 +30,20 @@ const articleSchema = new mongoose.Schema({
     required: true,
     ref: "People",
   },
-  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tags" }],
-  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categories" }],
+  tags: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tags" }],
+    required: false,
+    default: [],
+  },
+  categories: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categories" }],
+    required: false,
+    default: [],
+  },
   comments: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comments" }],
     required: false,
     default: [],
-  },
-
-  articleId: {
-    type: String,
-    required: true,
-    unique: true,
   },
 });
 interface IArticleModel extends Model<IArticle> {
@@ -50,16 +51,8 @@ interface IArticleModel extends Model<IArticle> {
 }
 
 articleSchema.statics.isArticleExist = async function (id: string) {
-  const article = await this.findOne({
-    $or: [
-      {
-        _id: id,
-      },
-      {
-        articleId: id,
-      },
-    ],
-  });
+
+  const article = await Article.findById(id);
   return article;
 };
 

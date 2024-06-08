@@ -1,11 +1,19 @@
 import { Router } from "express";
 import {
-  createTag as createTagByShopid,
-  geleteTagByid,
-  tagByArticleId,
+  DeleteTag,
+  createTag,
+  getAllTags,
+  getTagById,
+  updateTag,
 } from "../controller/tags.controller";
+import { validSchema } from "../middleweres/validator";
+import { tagSchema } from "../validation/article.validation";
+
 const router = Router();
-router.put("/update/article/:id", tagByArticleId);
-router.post("/create/article/:id", createTagByShopid);
-router.delete("/del/:tagId", geleteTagByid);
+
+router.post("/create", validSchema(tagSchema), createTag);
+router.put("/update/:id", updateTag);
+router.delete("/delete/:id", DeleteTag);
+router.get("/get", getAllTags);
+router.get("/get/:id", getTagById);
 export const tagsRoute = router;

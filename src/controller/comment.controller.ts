@@ -17,7 +17,7 @@ export const createComment = catchAsyncError(async (req, res) => {
   }
   const result = await Comment.create({
     ...body,
-    articleId: isArticleExist.articleId,
+    articleId: isArticleExist._id,
   });
 
   await Article.findByIdAndUpdate(isArticleExist._id, {

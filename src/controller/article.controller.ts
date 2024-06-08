@@ -1,27 +1,15 @@
+import mongoose from "mongoose";
 import QueryBuilder from "../builder/QueryBuilder";
 import { Article } from "../model/article.model";
 import { Categories } from "../model/category.model";
 import { Tags } from "../model/tags.model";
 import { catchAsyncError } from "../utils/catchAsyncError";
-import { generateArticleId } from "../utils/generateArticleId";
 import sendResponse from "../utils/sendResponse";
 
 export const createArticle = catchAsyncError(async (req, res) => {
-  const { category, tags, ...rest } = req.body;
+  const { ...rest } = req.body;
 
-  const articleId = await generateArticleId();
-
-  const tagsData = [...tags].map((tag) => ({ ...tag, articleId }));
-  const categoiesData = [...category].map((cat) => ({ ...cat, articleId }));
-
-  const tag = await Tags.create([...tagsData]);
-  const categories = await Categories.create([...categoiesData]);
-
-  let data = { ...rest };
-  data.tags = tag.map((tag) => tag._id);
-  data.categories = categories.map((cat) => cat._id);
-
-  const article = await Article.create({ ...data, articleId });
+  const article = await Article.create({ ...rest });
 
   sendResponse(res, {
     statusCode: 200,
@@ -88,8 +76,8 @@ export const deletArticleByid = catchAsyncError(async (req, res, next) => {
 
   // delte operations
   await Article.findByIdAndDelete(isExist._id);
-  await Tags.deleteMany({ articleId: isExist.articleId });
-  await Categories.deleteMany({ articleId: isExist.articleId });
+  await Tags.deleteMany({ articleId: isExist._id });
+  await Categories.deleteMany({ articleId: isExist._id });
   sendResponse(res, {
     data: null,
     success: true,
@@ -99,19 +87,40 @@ export const deletArticleByid = catchAsyncError(async (req, res, next) => {
 
 export const updateArticleById = catchAsyncError(async (req, res) => {
   const id = req.params.id;
-  const body = req.body;
+  const { tags, categories, ...rest } = req.body;
   const isExist = await Article.isArticleExist(id);
   if (!isExist) {
     return sendResponse(res, {
       data: null,
       success: false,
-      message: "Article no found",
+      message: "Article not found",
     });
   }
 
-  ["people", "date","tags","categories","comments","articleId"].forEach((item) => delete body[item]);
+  ["people", "date", "comments"].forEach((item) => delete rest[item]);
 
-  const result = await Article.findByIdAndUpdate(id, body);
+  let updateData: Record<string, unknown> = { ...rest }; // Spread rest, not res
+  if (tags && tags.length > 0) {
+    updateData["$addToSet"] = {
+      ...(updateData["$addToSet"] || {}),
+      tags: {
+        $each: tags.map((tag: string) => new mongoose.Types.ObjectId(tag)),
+      },
+    };
+  }
+  if (categories && categories.length > 0) {
+    updateData["$addToSet"] = {
+      ...(updateData["$addToSet"] || {}),
+      categories: {
+        $each: categories.map(
+          (cat: string) => new mongoose.Types.ObjectId(cat)
+        ),
+      },
+    };
+  }
+  console.log(updateData);
+
+  const result = await Article.findByIdAndUpdate(id, updateData);
   sendResponse(res, {
     data: result,
     message: `Article updated successfully id=${id}`,

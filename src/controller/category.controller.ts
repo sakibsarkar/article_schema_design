@@ -1,103 +1,84 @@
 import { Article } from "../model/article.model";
 import { Categories } from "../model/category.model";
+import { Tags } from "../model/tags.model";
 import { catchAsyncError } from "../utils/catchAsyncError";
 import sendResponse from "../utils/sendResponse";
 
-export const updateCategorybyId = catchAsyncError(async (req, res) => {
+export const createCategory = catchAsyncError(async (req, res) => {
+  const { body } = req;
+  const result = await Categories.create(body);
+  sendResponse(res, {
+    statusCode: 200,
+    message: "successfully created category",
+    data: result,
+    success: true,
+  });
+});
+export const updateCategory = catchAsyncError(async (req, res) => {
+  const { body } = req;
   const id = req.params.id;
-  const body = req.body;
-  ["articleId"].forEach((e) => delete body[e]);
-  const isExistCategory = await Categories.findById(id);
-  if (!isExistCategory) {
+  const result = await Categories.findByIdAndUpdate(id, body, {
+    runValidators: true,
+    new: true,
+  });
+  sendResponse(res, {
+    statusCode: 200,
+    message: "successfully updated category",
+    data: result,
+    success: true,
+  });
+});
+export const DeleteCategory = catchAsyncError(async (req, res) => {
+  const id = req.params.id;
+  const tag = await Categories.findById(id);
+  if (!tag) {
     return sendResponse(res, {
+      statusCode: 400,
       message: "Category not found",
       data: null,
       success: false,
-      statusCode: 400,
     });
   }
-
-  const update = await Categories.findByIdAndUpdate(id, body);
+  const result = await Categories.findByIdAndDelete(id);
+  await Article.updateMany({ categoies: id }, { $pull: { tags: id } });
   sendResponse(res, {
-    message: "Category updated successfully",
-    data: update,
-    success: true,
     statusCode: 200,
-  });
-});
-
-export const categoryByArticleId = catchAsyncError(async (req, res) => {
-  // article id
-  const id = req.params.id;
-  const { categories } = req.body;
-
-  const isExistArticle = await Article.isArticleExist(id);
-  if (!isExistArticle) {
-    return sendResponse(res, {
-      data: null,
-      success: false,
-      message: "now article found",
-    });
-  }
-
-  [...categories].forEach(
-    async (cat) => await Categories.findByIdAndUpdate(cat._id, cat)
-  );
-  sendResponse(res, {
-    data: null,
-    message: "Category update successfull",
-    success: true,
-    statusCode: 200,
-  });
-});
-export const createCategory = catchAsyncError(async (req, res) => {
-  const body = req.body;
-  const id = req.params.id;
-  const isExistArticle = await Article.isArticleExist(id);
-  if (!isExistArticle) {
-    return sendResponse(res, {
-      message: "no article found",
-      data: null,
-      success: false,
-      statusCode: 400,
-    });
-  }
-  const result = await Categories.create({
-    ...body,
-    articleId: isExistArticle.articleId,
-  });
-  await Article.findByIdAndUpdate(isExistArticle._id, {
-    $push: { categoies: result._id },
-  });
-
-  sendResponse(res, {
-    message: "Category created successfully",
+    message: "successfully updated tag",
     data: result,
     success: true,
-    statusCode: 200,
   });
 });
-export const deleteCategoryByid = catchAsyncError(async (req, res) => {
-  const id = req.params.categoryId;
-  const isExist = await Categories.findById(id);
-  if (!isExist) {
-    return sendResponse(res, {
-      data: null,
+
+export const getAllCategories = catchAsyncError(async (req, res) => {
+  const categories = await Categories.find();
+
+  if (categories.length === 0) {
+    return res.status(400).json({
       success: false,
-      message: "now Category found",
+      msg: "NO tag found",
     });
   }
 
-  await Categories.deleteOne({ _id: id });
-  await Article.findOneAndUpdate(
-    { articleId: isExist.articleId },
-    { $pull: { categoies: isExist._id } }
-  );
+  return sendResponse(res, {
+    message: "Successfully get all tags",
+    data: categories,
+    success: true,
+  });
+});
+export const getCategoryById = catchAsyncError(async (req, res) => {
+  const { id } = req.params;
+  const tag = await Tags.findById(id);
+
+  if (!tag) {
+    return res.status(400).json({
+      success: false,
+      msg: `tag not found for ${id} `,
+    });
+  }
 
   return sendResponse(res, {
-    data: null,
+    message: `Successfully get  tag for id ${id}`,
+    data: tag,
     success: true,
-    message: "Category delete successfully",
-    statusCode: 200,
   });
 });

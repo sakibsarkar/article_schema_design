@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const tagsSchema = new mongoose.Schema({
   name: {
@@ -16,8 +16,9 @@ const tagsSchema = new mongoose.Schema({
   },
 
   articleId: {
-    type: String,
-    required: true,
+    type: [{ type: Schema.Types.ObjectId, ref: "Article" }],
+    required: false,
+    default: [],
   },
 });
 

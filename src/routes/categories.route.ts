@@ -1,11 +1,18 @@
 import { Router } from "express";
 import {
-  categoryByArticleId,
   createCategory,
-  deleteCategoryByid,
+  DeleteCategory as deleteCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
 } from "../controller/category.controller";
+import { validSchema } from "../middleweres/validator";
+import { categorySchema } from "../validation/article.validation";
+
 const router = Router();
-router.put("/update/article/:id", categoryByArticleId);
-router.post("/create/article/:id", createCategory);
-router.delete("/del/:categoryId", deleteCategoryByid);
+router.post("/create", validSchema(categorySchema), createCategory);
+router.put("/update/:id", updateCategory);
+router.delete("/delete/:id", deleteCategory);
+router.get("/get", getAllCategories);
+router.get("/get/:id", getCategoryById);
 export const categoryRoute = router;
