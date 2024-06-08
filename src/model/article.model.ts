@@ -5,6 +5,8 @@ interface IArticle extends Document {
   text: string;
   date: Date;
   people: mongoose.Types.ObjectId;
+  tags: mongoose.Types.ObjectId[];
+  categoies: mongoose.Types.ObjectId[];
 }
 
 const articleSchema = new mongoose.Schema({
@@ -25,6 +27,8 @@ const articleSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
+  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tags" }],
+  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categories" }],
 });
 interface IArticleModel extends Model<IArticle> {
   isArticleExist(id: string): Promise<IArticle | null>;
@@ -40,6 +44,6 @@ articleSchema.statics.isArticleExist = async function (id: string) {
 };
 
 export const Article = mongoose.model<IArticle, IArticleModel>(
-  "article",
+  "Article",
   articleSchema
 );

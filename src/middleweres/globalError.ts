@@ -6,6 +6,8 @@ const globalErrorHandler: ErrorRequestHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  console.log(error);
+
   res.status(500).json({
     success: false,
     message: "Internal Server Error",

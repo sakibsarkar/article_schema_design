@@ -1,31 +1,25 @@
-import mongoose from "mongoose";
-import AggregationBuilder from "../builder/QueryBuilderAgreegation";
+import QueryBuilder from "../builder/QueryBuilder";
 import { Article } from "../model/article.model";
-import { Category } from "../model/category.model";
+import { Categories } from "../model/category.model";
 import { Tags } from "../model/tags.model";
 import { catchAsyncError } from "../utils/catchAsyncError";
 import sendResponse from "../utils/sendResponse";
 
 export const createArticle = catchAsyncError(async (req, res) => {
   const { category, tags, ...rest } = req.body;
-  const article = await Article.create(rest);
 
-  const tagData = tags.map((tag: Record<string, unknown>) => ({
-    ...tag,
-    article: article._id,
-  }));
+  const tag = await Tags.create([...category]);
+  const categories = await Categories.create(tags);
 
-  const categoryData = category.map((cat: Record<string, unknown>) => ({
-    ...cat,
-    article: article._id,
-  }));
+  let data = { ...rest };
+  data.tags = tag.map((tag) => tag._id);
+  data.categories = tag.map((tag) => tag._id);
 
-  const tag = await Tags.create(tagData);
-  const categories = await Category.create(categoryData);
+  const article = await Article.create(data);
 
   sendResponse(res, {
     statusCode: 200,
-    data: { ...article.toObject(), categroy: categories, tags: tag },
+    data: article,
     message: "article created successfully",
     success: true,
   });
@@ -34,38 +28,17 @@ export const createArticle = catchAsyncError(async (req, res) => {
 export const getAllArticle = catchAsyncError(async (req, res, next) => {
   const { searchTerm, category, tag, limit, skip } = req.query;
 
-  const builder = new AggregationBuilder(Article.aggregate(), req.query);
-  builder.lookup("tags", "_id", "article", "tags");
-  builder.lookup("categories", "_id", "article", "category");
-  if (limit) {
-    builder.limit(parseInt(limit as string));
-  }
-  if (skip) {
-    builder.skip(parseInt(limit as string));
-  }
-  if (tag) {
-    builder.aggregation.match({
-      tags: {
-        $elemMatch: {
-          name: tag,
-        },
-      },
-    });
-  }
-  if (category) {
-    builder.aggregation.match({
-      category: {
-        $elemMatch: {
-          name: category,
-        },
-      },
-    });
-  }
-
-  if (searchTerm) {
-    builder.match(["title", "text"]);
-  }
-  const result = await builder.aggregation;
+  const article = Article.find()
+    .populate("tags")
+    .populate("categories")
+    .populate("people");
+  const query = new QueryBuilder(article, req.query)
+    .filter()
+    .search(["title", "text"])
+    .paginate()
+    .sort()
+    .fields();
+  const result = await query.modelQuery;
   sendResponse(res, {
     data: result,
     message: "successfully get all article ",
@@ -85,23 +58,13 @@ export const getSingleArticle = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  const builder = new AggregationBuilder(Article.aggregate(), req.query);
-  builder.lookup("tags", "_id", "article", "tags");
-  builder.lookup("categories", "_id", "article", "category");
-  builder.aggregation.match({ _id: new mongoose.Types.ObjectId(id) });
-  const result = await builder.aggregation;
-
-  if (result.length == 0) {
-    return sendResponse(res, {
-      data: null,
-      message: `no article found for this id=${id}`,
-      success: true,
-      statusCode: 200,
-    });
-  }
+  const result = await Article.find()
+    .populate("tags")
+    .populate("categories")
+    .populate("people");
 
   sendResponse(res, {
-    data: result[0],
+    data: result,
     message: `successfully get article for id ${id}`,
     success: true,
     statusCode: 200,
@@ -122,7 +85,7 @@ export const deletArticleByid = catchAsyncError(async (req, res, next) => {
   // delte operations
   await Article.findByIdAndDelete(id);
   await Tags.deleteMany({ article: id });
-  await Category.deleteMany({ article: id });
+  await Categories.deleteMany({ article: id });
   sendResponse(res, {
     data: null,
     success: true,
@@ -142,13 +105,11 @@ export const updateArticleById = catchAsyncError(async (req, res) => {
     });
   }
 
-  ["people", "date"].forEach((item, i, arr) => delete body[item]);
-
-  console.log(body);
+  ["people", "date"].forEach((item) => delete body[item]);
 
   const result = await Article.findByIdAndUpdate(id, body);
   sendResponse(res, {
-    data: null,
+    data: result,
     message: `Article updated successfully id=${id}`,
     success: true,
     statusCode: 200,
