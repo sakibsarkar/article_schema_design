@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import AggregationBuilder from "../builder/QueryBuilderAgreegation";
 import { Article } from "../model/article.model";
 import { Category } from "../model/category.model";
@@ -68,6 +69,40 @@ export const getAllArticle = catchAsyncError(async (req, res, next) => {
   sendResponse(res, {
     data: result,
     message: "successfully get all article ",
+    success: true,
+    statusCode: 200,
+  });
+});
+
+export const getSingleArticle = catchAsyncError(async (req, res, next) => {
+  const id = req.params.id;
+  const objIdRegex = /^[0-9a-fA-F]{24}$/;
+  if (!objIdRegex.test(id)) {
+    sendResponse(res, {
+      data: null,
+      success: false,
+      message: "Invalid object id",
+    });
+  }
+
+  const builder = new AggregationBuilder(Article.aggregate(), req.query);
+  builder.lookup("tags", "_id", "article", "tags");
+  builder.lookup("categories", "_id", "article", "category");
+  builder.aggregation.match({ _id: new mongoose.Types.ObjectId(id) });
+  const result = await builder.aggregation;
+
+  if (result.length == 0) {
+    return sendResponse(res, {
+      data: null,
+      message: `no article found for this id=${id}`,
+      success: true,
+      statusCode: 200,
+    });
+  }
+
+  sendResponse(res, {
+    data: result[0],
+    message: `successfully get article for id ${id}`,
     success: true,
     statusCode: 200,
   });
