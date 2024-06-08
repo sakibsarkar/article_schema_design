@@ -20,7 +20,18 @@ export const createArticle = catchAsyncError(async (req, res) => {
 });
 
 export const getAllArticle = catchAsyncError(async (req, res, next) => {
-  const article = Article.find()
+  const { tags, categoies } = req.query;
+  let tagsId = (tags as string)?.split(",") || "";
+  let categoriesId = (categoies as string)?.split(",") || "";
+
+  const find: Record<string, unknown> = {};
+  if (tagsId) {
+    find.tags = { $in: tagsId };
+  }
+  if (categoriesId) {
+    find.categories = { $in: categoriesId };
+  }
+  const article = Article.find(find)
     .populate("tags")
     .populate("categories")
     .populate("people");

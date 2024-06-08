@@ -30,28 +30,36 @@ const articleSchema = new mongoose.Schema({
     required: true,
     ref: "People",
   },
-  tags: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tags" }],
-    required: false,
-    default: [],
-  },
-  categories: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categories" }],
-    required: false,
-    default: [],
-  },
-  comments: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comments" }],
-    required: false,
-    default: [],
-  },
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tags",
+      required: false,
+      default: [],
+    },
+  ],
+  categories: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Categories",
+      required: false,
+      default: [],
+    },
+  ],
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comments",
+      required: false,
+      default: [],
+    },
+  ],
 });
 interface IArticleModel extends Model<IArticle> {
   isArticleExist(id: string): Promise<IArticle | null>;
 }
 
 articleSchema.statics.isArticleExist = async function (id: string) {
-
   const article = await Article.findById(id);
   return article;
 };

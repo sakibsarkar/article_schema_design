@@ -9,11 +9,13 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  articleId: {
-    type: [{ type: Schema.Types.ObjectId, ref: "Article" }],
-    required: false,
-    default: [],
-  },
+  articleId: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Article",
+      default: [],
+    },
+  ],
 });
 
 export const Categories = mongoose.model("Categories", categorySchema);

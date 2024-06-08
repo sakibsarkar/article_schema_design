@@ -14,12 +14,13 @@ const tagsSchema = new mongoose.Schema({
     required: true,
     default: new Date(),
   },
-
-  articleId: {
-    type: [{ type: Schema.Types.ObjectId, ref: "Article" }],
-    required: false,
-    default: [],
-  },
+  articleId: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Article",
+      default: [],
+    },
+  ],
 });
 
 export const Tags = mongoose.model("Tags", tagsSchema);
