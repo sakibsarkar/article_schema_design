@@ -18,14 +18,6 @@ const articleSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
   },
-  tags: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-  },
-  category: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-  },
 });
 
 export const Article = mongoose.model("article", articleSchema);

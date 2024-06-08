@@ -9,7 +9,6 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   article: {
     type: mongoose.Types.ObjectId,
     required: true,
