@@ -76,12 +76,12 @@ export const getAllArticle = catchAsyncError(async (req, res, next) => {
 
 export const getSingleArticle = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
-  const objIdRegex = /^[0-9a-fA-F]{24}$/;
-  if (!objIdRegex.test(id)) {
-    sendResponse(res, {
+  const isExist = await Article.isArticleExist(id);
+  if (!isExist) {
+    return sendResponse(res, {
       data: null,
       success: false,
-      message: "Invalid object id",
+      message: "Article no found",
     });
   }
 
@@ -110,16 +110,7 @@ export const getSingleArticle = catchAsyncError(async (req, res, next) => {
 
 export const deletArticleByid = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
-  const objIdRegex = /^[0-9a-fA-F]{24}$/;
-  if (!objIdRegex.test(id)) {
-    sendResponse(res, {
-      data: null,
-      success: false,
-      message: "Invalid object id",
-    });
-  }
-
-  const isExist = Article.findById(id);
+  const isExist = await Article.isArticleExist(id);
   if (!isExist) {
     return sendResponse(res, {
       data: null,
@@ -136,5 +127,30 @@ export const deletArticleByid = catchAsyncError(async (req, res, next) => {
     data: null,
     success: true,
     message: `Article deleted successfully id=${id}`,
+  });
+});
+
+export const updateArticleById = catchAsyncError(async (req, res) => {
+  const id = req.params.id;
+  const body = req.body;
+  const isExist = await Article.isArticleExist(id);
+  if (!isExist) {
+    return sendResponse(res, {
+      data: null,
+      success: false,
+      message: "Article no found",
+    });
+  }
+
+  ["people", "date"].forEach((item, i, arr) => delete body[item]);
+
+  console.log(body);
+
+  const result = await Article.findByIdAndUpdate(id, body);
+  sendResponse(res, {
+    data: null,
+    message: `Article updated successfully id=${id}`,
+    success: true,
+    statusCode: 200,
   });
 });

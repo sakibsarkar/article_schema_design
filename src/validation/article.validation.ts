@@ -18,4 +18,9 @@ const articleSchema = z.object({
   category: z.array(categorySchema).nonempty("Tags are required"),
 });
 
+const articleUpdateSchema = z.object({
+  title: z.string({ message: "title  is required as string" }).optional(),
+  text: z.string({ message: "text is required as string" }).optional(),
+});
+
 export default articleSchema;
