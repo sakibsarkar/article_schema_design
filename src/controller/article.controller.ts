@@ -107,3 +107,34 @@ export const getSingleArticle = catchAsyncError(async (req, res, next) => {
     statusCode: 200,
   });
 });
+
+export const deletArticleByid = catchAsyncError(async (req, res, next) => {
+  const id = req.params.id;
+  const objIdRegex = /^[0-9a-fA-F]{24}$/;
+  if (!objIdRegex.test(id)) {
+    sendResponse(res, {
+      data: null,
+      success: false,
+      message: "Invalid object id",
+    });
+  }
+
+  const isExist = Article.findById(id);
+  if (!isExist) {
+    return sendResponse(res, {
+      data: null,
+      success: false,
+      message: "Article no found",
+    });
+  }
+
+  // delte operations
+  await Article.findByIdAndDelete(id);
+  await Tags.deleteMany({ article: id });
+  await Category.deleteMany({ article: id });
+  sendResponse(res, {
+    data: null,
+    success: true,
+    message: `Article deleted successfully id=${id}`,
+  });
+});

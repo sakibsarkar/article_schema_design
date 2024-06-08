@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createArticle,
+  deletArticleByid,
   getAllArticle,
   getSingleArticle,
 } from "../controller/article.controller";
@@ -10,4 +11,5 @@ const router = Router();
 router.post("/create", validSchema(articleSchema), createArticle);
 router.get("/get", getAllArticle);
 router.get("/get/:id", getSingleArticle);
+router.delete("/del/:id", deletArticleByid);
 export const arcticleRoute = router;
