@@ -1,4 +1,8 @@
+import { Article } from "../model/article.model";
+import { Categories } from "../model/category.model";
+import { Comment } from "../model/comment.model";
 import { People } from "../model/people.model";
+import { Tags } from "../model/tags.model";
 import { catchAsyncError } from "../utils/catchAsyncError";
 import { generatePeopleId } from "../utils/generatePeopleId";
 import sendResponse from "../utils/sendResponse";
@@ -48,5 +52,36 @@ export const updatePerson = catchAsyncError(async (req, res) => {
     data: updatedPerson,
     success: true,
     message: "successfully updated people",
+  });
+});
+export const deletePeople = catchAsyncError(async (req, res, next) => {
+  const id = req.params.id;
+  const people = await People.findById(id);
+  if (!people) {
+    return sendResponse(res, {
+      message: "people not foud",
+      data: null,
+      success: false,
+      statusCode: 400,
+    });
+  }
+
+  const peopleId = people._id;
+  const peopleArticles = await Article.find({ people: peopleId });
+  const articlesId = peopleArticles?.map((art) => art.articleId);
+  console.log(articlesId);
+
+  //   delete oparation
+  await People.deleteOne({ _id: peopleId });
+  await Comment.deleteMany({ people: peopleId });
+  await Article.deleteMany({ people: peopleId });
+  await Tags.deleteMany({ articleId: { $in: articlesId } });
+  await Categories.deleteMany({ articleId: { $in: articlesId } });
+
+  sendResponse(res, {
+    data: null,
+    message: "people delete successfully",
+    success: true,
+    statusCode: 200,
   });
 });
