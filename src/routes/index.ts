@@ -1,6 +1,7 @@
 import express from "express";
 import { arcticleRoute } from "./article.route";
 import { peopleRotue as peopleRoute } from "./people.route";
+import { tagsRoute } from "./tags.route";
 const router = express.Router();
 
 const moduleRoute = [
@@ -11,6 +12,10 @@ const moduleRoute = [
   {
     path: "/people",
     route: peopleRoute,
+  },
+  {
+    path: "/tag",
+    route: tagsRoute,
   },
 ];
 

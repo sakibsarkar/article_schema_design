@@ -19,7 +19,7 @@ export const createArticle = catchAsyncError(async (req, res) => {
 
   let data = { ...rest };
   data.tags = tag.map((tag) => tag._id);
-  data.categories = categoiesData.map((cat) => cat._id);
+  data.categories = categories.map((cat) => cat._id);
 
   const article = await Article.create({ ...data, articleId });
 
@@ -109,7 +109,7 @@ export const updateArticleById = catchAsyncError(async (req, res) => {
     });
   }
 
-  ["people", "date"].forEach((item) => delete body[item]);
+  ["people", "date","tags","categories","comments","articleId"].forEach((item) => delete body[item]);
 
   const result = await Article.findByIdAndUpdate(id, body);
   sendResponse(res, {
